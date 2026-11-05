@@ -1,0 +1,6 @@
+# Evidence
+User authorized Windows installer after explaining unsupported Windows and automatic setup proposal. Baseline main c972f42e7fdbc31999fccd7638266e186c0f3669 clean. install-helper.mjs unconditionally writes macOS Library path, confirming Windows gap by source. Chrome official docs require HKCU\Software\Google\Chrome\NativeMessagingHosts registration on Windows. Scope/design/tasks concretize already accepted recommendation; no additional approval inferred for releases, registry changes on other computers or microphone capture. Current host macOS, actual Windows verification unknown.
+
+User reaffirmed “nvm just make it work now” for practical Windows setup. Owner /root/native_impl installer/tests/docs/workflow; reviewer /root/oauth_review independent context. No local pwsh or wine found. GitHub repo cdgmx/meeting-notes-extension main viewer ADMIN; Windows Actions validation planned after source review. No change to local macOS registration authorized/needed.
+
+User explicitly instructed push then test, overriding publication review ordering for this candidate. Owner paused coherent WIP files. Local npm test exit0 /tmp/meeting-windows-suite.log; Windows/native installation and independent review pending. Push is not acceptance or user-ready claim.

@@ -1,0 +1,3 @@
+- [ ] 1. Reproduce Windows install gap and implement guided per-user setup/runtime/native registration with failure cleanup.
+- [ ] 2. Verify Windows plans/quoting/permissions and macOS regression; document setup and site limits.
+- [ ] 3. Obtain independent spec/security/quality review and record actual Windows verification or gaps.
