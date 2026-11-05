@@ -1,0 +1,44 @@
+import { test } from 'node:test';
+import { strict as assert } from 'node:assert';
+
+test('panel distinguishes a retained transcript error and prevents duplicate capture', async t => {
+  const items = new Map(); const handlers = new Map(); let storageListener; let savedPatch;
+  function element(id) { if (!items.has(id)) items.set(id, { id, value: '', textContent: '', disabled: false, classList: { values: new Set(), toggle(name, enabled) { if (enabled) this.values.add(name); else this.values.delete(name); }, contains(name) { return this.values.has(name); } }, addEventListener(type, fn) { handlers.set(id + ':' + type, fn); }, replaceChildren() {}, append() {} }); return items.get(id); }
+  globalThis.document = { getElementById: element, createElement: () => element('option'), activeElement: null };
+  t.after(() => { delete globalThis.document; delete globalThis.chrome; });
+  globalThis.chrome = { storage: { local: { get: async () => ({}), set: async patch => { savedPatch = patch; } }, onChanged: { addListener(fn) { storageListener = fn; } } }, runtime: { onMessage: { addListener() {} }, sendMessage: async () => ({ data: { connected: false, accounts: [] } }) } };
+  await import('./panel.js?ui-test=1');
+  storageListener({ active: { newValue: true }, busy: { newValue: false } }, 'local');
+  assert.equal(element('start').disabled, true); assert.equal(element('start').textContent, 'Listening…'); assert.equal(element('start').classList.contains('recording'), true); assert.equal(element('stop').disabled, false); assert.equal(element('label').textContent, 'Listening');
+  storageListener({ active: { newValue: false }, busy: { newValue: true } }, 'local');
+  assert.equal(element('start').disabled, true); assert.equal(element('start').classList.contains('recording'), false); assert.equal(element('label').textContent, 'Finishing');
+  storageListener({ active: { newValue: false }, busy: { newValue: false }, status: { newValue: 'Transcript correction has an invalid segment count. Some captured audio was not processed and was discarded.' } }, 'local');
+  assert.equal(element('label').textContent, 'Attention needed');
+  assert.match(element('status').textContent, /notes and transcript.*saved/i);
+  assert.match(element('status').textContent, /start listening/i);
+  assert.equal(element('start').disabled, false); assert.equal(element('start').textContent, 'Start listening'); assert.equal(element('start').classList.contains('recording'), false);
+  await handlers.get('start:click')();
+  assert.equal(element('status').textContent, 'Open Notes connection, sign in and choose a notes model first.');
+  assert.equal(element('label').textContent, 'Attention needed');
+  storageListener({ status: { newValue: 'Old unclassified message.' } }, 'local');
+  assert.equal(element('label').textContent, 'Status');
+  storageListener({ status: { newValue: 'All is well.' }, statusError: { newValue: false } }, 'local');
+  assert.equal(element('label').textContent, 'Ready to listen');
+  storageListener({ status: { newValue: 'No active tab found.' }, statusError: { newValue: true } }, 'local');
+  assert.equal(element('label').textContent, 'Attention needed');
+  const oldNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { clipboard: { writeText: async () => { throw new Error('Unavailable'); } } } });
+  t.after(() => { if (oldNavigator) Object.defineProperty(globalThis, 'navigator', oldNavigator); else delete globalThis.navigator; });
+  await handlers.get('copy:click')();
+  assert.equal(element('label').textContent, 'Attention needed'); assert.match(element('status').textContent, /select the text and copy/i);
+  storageListener({ status: { newValue: 'First error.' }, statusError: { newValue: true } }, 'local');
+  storageListener({ status: { newValue: 'Another error.' } }, 'local');
+  assert.equal(element('label').textContent, 'Attention needed');
+  storageListener({ status: { newValue: 'Finished.' }, statusError: { newValue: false } }, 'local');
+  storageListener({ status: { newValue: 'Stopped.' } }, 'local');
+  assert.equal(element('label').textContent, 'Ready to listen');
+  storageListener({ active: { newValue: true }, status: { newValue: 'Notes updated. Transcript correction was skipped because the response was invalid.' }, statusError: { newValue: false } }, 'local');
+  assert.equal(element('label').textContent, 'Listening');
+  await handlers.get('clear:click')();
+  assert.equal(savedPatch.notesCursor, 0); assert.deepEqual(savedPatch.segments, []); assert.deepEqual(savedPatch.meetingContext, { topic: '', subjects: [], purpose: '' });
+});

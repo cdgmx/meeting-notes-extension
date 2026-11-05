@@ -1,0 +1,6 @@
+# Evidence
+Controller and original implementer /root/native_impl inspected createNotesWorker: prompt requests full updated notes; both write paths replace saved.notes. Exact provider response unavailable. No implementation change yet. User requested stable older notes and minimal boundary continuity; concrete append-only design/tasks awaiting approval per OpenSpec gate.
+
+User approved combined append-only and context-aware selfhealing scope. Original owner /root/native_impl retains implementation; append candidate /tmp/meeting-append-verified.log pending extension for context and recent correction window. Independent acceptance required.
+
+Combined candidate /tmp/meeting-context-verified.log records exact hashes, cwd, 55/55 passing and syntax exits0. Regression /tmp/meeting-context-{red,green}.log and append /tmp/meeting-append-{red,green}.log retained. Reviewer /root/oauth_review matched hashes and found no blocking source defect; append prefix literal, notes guard before write, recent-five boundary computed from current stored length, originals and context atomic preservation checked. Controller observed capture stopped, reloaded extension, reopened panel and observed Stopped and Start listening. Stored notes not cleared. Live provider semantics remain unverified and reload requires OAuth reconnection.

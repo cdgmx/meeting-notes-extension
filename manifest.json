@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Meeting Notes \u2014 experimental",
+  "version": "0.1.0",
+  "description": "Capture tab audio and draft meeting notes with your ChatGPT session.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "activeTab",
+    "tabCapture",
+    "offscreen",
+    "sidePanel",
+    "storage",
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Open Meeting Notes"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  }
+}

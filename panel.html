@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Meeting Notes</title><link rel="stylesheet" href="panel.css"></head>
+<body><main>
+<header><div><p class="eyebrow">YOUR MEETING COMPANION</p><h1>Meeting Notes</h1><p class="intro">Stay present. Capture the details.</p></div><span class="badge">EXPERIMENTAL</span></header>
+<details id="connection"><summary>Notes connection</summary>
+<p class="hint">Audio uses your ChatGPT browser login. Notes use a separate ChatGPT authorization through the local companion.</p>
+<p id="connection-status" role="status">Connecting to the local helper…</p>
+<div class="actions"><button id="refresh-connection" class="quiet">Refresh connection</button></div>
+<details><summary>Manual connection recovery</summary><p class="hint">If the automatic helper is unavailable, start the companion in a terminal and enter its pairing code.</p><label for="pairing">Companion pairing code</label><input id="pairing" type="password" autocomplete="off" placeholder="Paste the code from your terminal"><button id="connect" class="quiet">Connect manually</button></details>
+<label for="account">ChatGPT account</label><select id="account"><option value="">Add an account</option></select>
+<div class="actions"><button id="signin" disabled>Continue with ChatGPT</button><button id="signout" class="quiet" disabled>Sign out</button></div>
+<label for="model">Notes model</label><select id="model" disabled><option value="">Choose after signing in</option></select>
+<p class="hint">The local helper starts automatically. Restarting it requires signing in again.</p>
+</details>
+<section class="capture" aria-label="Capture controls"><div class="statusline"><span class="dot" id="dot"></span><strong id="label">Ready to listen</strong></div><p id="status" role="status">Capture the current tab to start taking notes.</p>
+<div class="actions"><button id="start">Start listening</button><button id="stop" class="secondary" disabled>Stop</button></div><p class="hint">Tab audio is sent to ChatGPT. Your microphone is not captured.</p></section>
+<details id="access-help"><summary>How to enable access</summary><ol class="hint"><li>Switch to your meeting or video tab.</li><li>Click <strong>Meeting Notes</strong> in Chrome’s toolbar or <strong>Extensions</strong> (puzzle piece) menu.</li><li>Select <strong>Start listening</strong> here.</li></ol><p class="hint">Repeat for each new tab. Chrome’s internal pages cannot be recorded.</p></details>
+<section><div class="heading"><div><p class="eyebrow">YOUR WORKSPACE</p><h2>Notes</h2></div><button class="quiet" id="copy">Copy notes</button></div><textarea id="notes" readonly aria-label="Meeting notes" placeholder="Notes will appear here as the conversation unfolds."></textarea><p class="hint">Notes update as each audio batch is processed.</p></section>
+<details><summary>Customize your prompt</summary><label for="prompt">Instructions for note-taking</label><textarea id="prompt" rows="5"></textarea><p class="hint">Changes apply to the next batch.</p></details>
+<details><summary>Transcript</summary><p class="hint">Recent text may be corrected as more context arrives. Check names and details against the original.</p><textarea id="transcript" aria-label="Corrected transcript" readonly placeholder="The transcript will appear here."></textarea><details><summary>Original transcription</summary><textarea id="original" aria-label="Original transcription" readonly placeholder="Original transcription will appear here."></textarea></details></details>
+<footer><button class="quiet" id="clear">Clear notes and transcript</button><p>Saved locally in this browser.</p></footer>
+</main><script type="module" src="panel.js"></script></body></html>
