@@ -42,7 +42,9 @@ test('bootstrap verifies a pinned official runtime before extraction and does no
   const script = await readFile(new URL('./Setup Meeting Notes.cmd', import.meta.url), 'utf8');
   assert.match(script, /https:\/\/nodejs\.org\/dist\/v22\.23\.4\/node-v22\.23\.4-win-x64\.zip/);
   assert.match(script, /CBC74B5E0982C9DBB41525FD8FB5DCD32FBEE237863F7829072F4639A1CE5F20/);
-  assert.ok(script.indexOf('ComputeHash') < script.indexOf('ExtractToDirectory'));
+  assert.match(script, /if \(\$hash -cne 'CBC74B5E0982C9DBB41525FD8FB5DCD32FBEE237863F7829072F4639A1CE5F20'\) \{ throw/i);
+  assert.ok(script.indexOf('ComputeHash') < script.indexOf('tar.exe'));
+  assert.match(script, /if errorlevel 1 goto cleanup_failed\r?\n[^\r\n]*tar\.exe/i);
   assert.doesNotMatch(script, /Get-FileHash|Expand-Archive/);
   assert.doesNotMatch(script, /ExecutionPolicy/i);
 });

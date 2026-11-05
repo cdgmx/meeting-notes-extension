@@ -13,7 +13,9 @@ mkdir "%MEETING_STAGE%" 2>nul
 if errorlevel 1 goto failed
 
 echo Downloading and verifying the official Node runtime...
-powershell.exe -NoProfile -NonInteractive -Command "$ErrorActionPreference = 'Stop'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $zip = Join-Path $env:MEETING_STAGE 'node.zip'; $web = [Net.WebClient]::new(); try { $web.DownloadFile('https://nodejs.org/dist/v22.23.4/node-v22.23.4-win-x64.zip', $zip) } finally { $web.Dispose() }; $stream = [IO.File]::OpenRead($zip); $sha = [Security.Cryptography.SHA256]::Create(); try { $hash = [BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-', '') } finally { $stream.Dispose(); $sha.Dispose() }; if ($hash -cne 'CBC74B5E0982C9DBB41525FD8FB5DCD32FBEE237863F7829072F4639A1CE5F20') { throw 'Node download checksum does not match. Setup stopped.' }; [void][Reflection.Assembly]::Load('System.IO.Compression.FileSystem'); [IO.Compression.ZipFile]::ExtractToDirectory($zip, $env:MEETING_STAGE)"
+powershell.exe -NoProfile -NonInteractive -Command "$ErrorActionPreference = 'Stop'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $zip = Join-Path $env:MEETING_STAGE 'node.zip'; $web = [Net.WebClient]::new(); try { $web.DownloadFile('https://nodejs.org/dist/v22.23.4/node-v22.23.4-win-x64.zip', $zip) } finally { $web.Dispose() }; $stream = [IO.File]::OpenRead($zip); $sha = [Security.Cryptography.SHA256]::Create(); try { $hash = [BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-', '') } finally { $stream.Dispose(); $sha.Dispose() }; if ($hash -cne 'CBC74B5E0982C9DBB41525FD8FB5DCD32FBEE237863F7829072F4639A1CE5F20') { throw 'Node download checksum does not match. Setup stopped.' }"
+if errorlevel 1 goto cleanup_failed
+"%SystemRoot%\System32\tar.exe" -xf "%MEETING_STAGE%\node.zip" -C "%MEETING_STAGE%"
 if errorlevel 1 goto cleanup_failed
 set "MEETING_RUNTIME_DIR=%MEETING_STAGE%\node-v22.23.4-win-x64"
 echo Installing the local helper and its locked dependencies...
