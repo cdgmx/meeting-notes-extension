@@ -19,10 +19,10 @@ test('installer registers only the supplied extension and refuses to replace a h
   const { mkdtemp, readFile, rm } = await import('node:fs/promises'); const { tmpdir } = await import('node:os'); const { join } = await import('node:path'); const { execFile } = await import('node:child_process'); const { promisify } = await import('node:util');
   const home = await mkdtemp(join(tmpdir(), 'meeting-native-test-')); const run = promisify(execFile); const id = 'a'.repeat(32);
   try {
-    await run(process.execPath, ['install-helper.mjs', '--extension-id', id], { env: { ...process.env, HOME: home } });
+    await run(process.execPath, ['install-helper.mjs', '--extension-id', id], { env: { ...process.env, HOME: home, USERPROFILE: home } });
     const host = JSON.parse(await readFile(join(home, 'Library/Application Support/Google/Chrome/NativeMessagingHosts/com.meeting_notes.helper.json'), 'utf8'));
     assert.deepEqual(host.allowed_origins, [`chrome-extension://${id}/`]); assert.equal(host.type, 'stdio');
-    await assert.rejects(run(process.execPath, ['install-helper.mjs', '--extension-id', id], { env: { ...process.env, HOME: home } }));
+    await assert.rejects(run(process.execPath, ['install-helper.mjs', '--extension-id', id], { env: { ...process.env, HOME: home, USERPROFILE: home } }));
   } finally { await rm(home, { recursive: true, force: true }); }
 });
 

@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm } from 'node:fs/promises';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { dirname, join } from 'node:path';
@@ -44,6 +44,44 @@ try {
   assert.equal(response.status, 200); assert.equal((await response.json()).connected, false);
   const exited = new Promise(resolve => child.once('exit', resolve)); child.stdin.end(); assert.equal(await exited, 0);
   console.log('Windows native launcher, registry isolation, framing and loopback status passed.');
+
+  // Exercise the same interactive entrypoint a user double-clicks, on this disposable runner.
+  const mainKey = 'HKCU\\Software\\Google\\Chrome\\NativeMessagingHosts\\com.meeting_notes.helper';
+  const bootstrapRoot = join(root, 'bootstrap'); await mkdir(bootstrapRoot);
+  const expectedManifest = join(bootstrapRoot, 'MeetingNotesHelper', 'host.json');
+  let priorRegistration = false;
+  try { await execute('reg.exe', ['query', mainKey]); priorRegistration = true; }
+  catch (error) { if (error.code !== 1) throw error; }
+  if (priorRegistration) throw new Error('A Chrome native host already exists; refusing bootstrap verification.');
+  try {
+    const setup = join(process.cwd(), 'Setup Meeting Notes.cmd');
+    const bootstrap = spawn('cmd.exe', ['/d', '/s', '/c', `""${setup}""`], {
+      windowsVerbatimArguments: true,
+      env: { ...process.env, TEMP: bootstrapRoot, TMP: bootstrapRoot, LOCALAPPDATA: bootstrapRoot, USERPROFILE: bootstrapRoot, HOME: bootstrapRoot },
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+    let output = ''; bootstrap.stdout.on('data', chunk => { output += chunk.toString(); }); bootstrap.stderr.on('data', chunk => { output += chunk.toString(); });
+    bootstrap.stdin.on('error', () => {}); bootstrap.stdin.end(id + '\r\n\r\n');
+    const code = await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => { bootstrap.kill(); reject(new Error('Bootstrap timed out.')); }, 180000);
+      bootstrap.once('error', error => { clearTimeout(timer); reject(error); });
+      bootstrap.once('exit', result => { clearTimeout(timer); resolve(result); });
+    });
+    assert.equal(code, 0, `Double-click setup failed: ${output}`);
+    const actual = await execute('reg.exe', ['query', mainKey, '/ve']);
+    assert.ok(actual.stdout.includes(expectedManifest));
+    const actualManifest = JSON.parse(await readFile(expectedManifest, 'utf8'));
+    assert.deepEqual(actualManifest.allowed_origins, [`chrome-extension://${id}/`]);
+    console.log('Double-click bootstrap downloaded, verified and registered the pinned runtime.');
+  } finally {
+    let current;
+    try { current = await execute('reg.exe', ['query', mainKey, '/ve']); }
+    catch (error) { if (error.code !== 1) throw error; }
+    if (current) {
+      if (!current.stdout.includes(expectedManifest)) throw new Error('Registry registration changed during bootstrap verification; cleanup refused.');
+      await execute('reg.exe', ['delete', mainKey, '/f']);
+    }
+  }
 } finally {
   if (child && child.exitCode === null) child.kill();
   await execute('reg.exe', ['delete', `HKCU\\${key}`, '/f']).catch(() => {});
